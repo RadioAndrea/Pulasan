@@ -20,7 +20,7 @@ CC       = g++
 CFLAGS   = -Wall -I.
 
 # linking flags here
-LFLAGS   = -Wall -I. -lm -lpthread
+LFLAGS   = -Wall -I. -lm -L /usr/local/lib
 
 # change these to set the proper directories where each files shoould be
 SRCDIR   = src
@@ -29,19 +29,24 @@ BINDIR   = bin
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
-# INCLUDE_DIR := ./include/*
-# CFLAGS   += $(foreach includedir,$(INCLUDE_DIR),-I$(includedir))
+INCLUDE_DIR := /usr/local/include/modbus
+CFLAGS   += $(foreach includedir,$(INCLUDE_DIR),-I$(includedir))
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 rm       = rm -f
 
+all: directories $(BINDIR)/$(TARGET)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	$(LINK.cc) $^ -o $@ $(LFLAGS)
 	@echo "Linking complete!"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp | $(OBJDIR)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
+
+directories:
+	@mkdir -p $(BINDIR)
+	@mkdir -p $(OBJDIR)
 
 .PHONEY: clean
 clean:
