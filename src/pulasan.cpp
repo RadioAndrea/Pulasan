@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <exception>
 #include <unistd.h>
+#include <cerrno>
 
 #define IP_ADDR "137.155.2.170"
 
