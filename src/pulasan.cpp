@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <exception>
-
+#include <unistd.h>
 
 #define IP_ADDR "137.155.2.170"
 
-const int MODBUS_READ_ADDRESS 100001;
-const int MODBUS_WRITE_ADDRESS 1;
+const int MODBUS_READ_ADDRESS = 100001;
+const int MODBUS_WRITE_ADDRESS = 1;
 
 class InterruptException : public std::exception
 {
@@ -29,13 +29,13 @@ int main(){
     uint16_t tab_reg[32];
 
     mb = modbus_new_tcp(IP_ADDR, 502);
-    if (ctx == NULL) {
+    if (mb == NULL) {
         fprintf(stderr, "Unable to allocate libmodbus context\n");
         return -1;
     }
     if (modbus_connect(mb) == -1){
         fprintf(stderr, "Connection failed: %s\n", modbus_strerror(errno));
-        modbus_free(ctx);
+        modbus_free(mb);
         return -1;
     }
 
@@ -54,7 +54,7 @@ int main(){
             write_bool = !write_bool;
             for(int i = MODBUS_WRITE_ADDRESS; i < MODBUS_WRITE_ADDRESS + 16; i++){
                 modbus_write_bit(mb, i, write_bool);
-                sleep(1);
+                usleep(1*1000*1000);
             }
         }
     }catch(InterruptException& e){
