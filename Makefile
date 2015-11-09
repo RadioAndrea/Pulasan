@@ -20,7 +20,7 @@ CC       = g++
 CFLAGS   = -Wall -I.
 
 # linking flags here
-LFLAGS   = -Wall -I. -lm -L /usr/local/lib
+LFLAGS   = -Wall -I. -lm -L /usr/local/lib -lmodbus
 
 # change these to set the proper directories where each files shoould be
 SRCDIR   = src
@@ -37,23 +37,23 @@ rm       = rm -f
 all: directories $(BINDIR)/$(TARGET)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
-	$(LINK.cc) $^ -o $@ $(LFLAGS)
-	@echo "Linking complete!"
+  $(LINK.cc) $^ -o $@ $(LFLAGS)
+  @echo "Linking complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp | $(OBJDIR)
-	@$(CC) $(CFLAGS) -c $< -o $@
-	@echo "Compiled "$<" successfully!"
+  @$(CC) $(CFLAGS) -c $< -o $@
+  @echo "Compiled "$<" successfully!"
 
 directories:
-	@mkdir -p $(BINDIR)
-	@mkdir -p $(OBJDIR)
+  @mkdir -p $(BINDIR)
+  @mkdir -p $(OBJDIR)
 
 .PHONEY: clean
 clean:
-	@$(rm) $(OBJECTS)
-	@echo "Cleanup complete!"
+  @$(rm) $(OBJECTS)
+  @echo "Cleanup complete!"
 
 .PHONEY: remove
 remove: clean
-	@$(rm) $(BINDIR)/$(TARGET)
-	@echo "Executable removed!"
+  @$(rm) $(BINDIR)/$(TARGET)
+  @echo "Executable removed!"
