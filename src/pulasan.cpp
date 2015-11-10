@@ -46,17 +46,44 @@ int main(){
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
 
-    uint8_t inputs[16];
+    uint8_t inputs[16] = {0};
+    uint8_t outputs[16] = {0};
     bool write_bool = false;
+    int  write_num  = MODBUS_WRITE_ADDRESS;
+    int  count      = 0;
+
+    std::cout << "Project Pulasan" << std::endl << "Press CTRL-C to exit" << std::endl << std::endl << std::endl << std::endl;
 
     try{
         while (true) {
-            modbus_read_input_bits(mb, MODBUS_READ_ADDRESS, 16, inputs);
-            write_bool = !write_bool;
-            for(int i = MODBUS_WRITE_ADDRESS; i < MODBUS_WRITE_ADDRESS + 16; i++){
-                modbus_write_bit(mb, i, write_bool);
-                usleep(500*1000);
+            modbus_read_input_bits(mb, MODBUS_READ_ADDRESS-1, 16, inputs);
+            modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
+
+            // use \e[A to move up a line
+            std::cout << "\r\e[A\e[A\e[A"
+                      << "         0123456789012345" << std::endl;
+            std::cout << "inputs:  ";
+            for(int i = 0; i < 16; i++){
+                std::cout << (inputs[i]+0);
             }
+            std::cout << std::endl;
+            std::cout << "outputs: ";
+            for(int i = 0; i < 16; i++){
+                std::cout << (outputs[i]+0);//(outputs[i] == true) ? "1" : "0";
+            }
+            std::cout << std::endl << std::flush;
+
+            count++;
+            if(count==10){
+                outputs[write_num] = write_bool;
+                count = 0;
+                write_num++;
+            }
+            if(write_num == 16){
+                write_bool = !write_bool;
+                write_num = 0;
+            }
+            usleep(5*1000); //Sleep 5ms
         }
     }catch(InterruptException& e){
         modbus_close(mb);
