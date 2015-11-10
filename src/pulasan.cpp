@@ -29,8 +29,7 @@ void sig_to_exception(int s)
 }
 
 int main(){
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
 
     modbus_t *mb;
 
@@ -46,21 +45,16 @@ int main(){
     }
 
     setup_interupt();
+    print_intro();
 
-    uint16_t input = 0;
-    uint8_t outputs[16] = {0};
     bool write_bool = true;
     int  write_num  = 0;
-    int  count      = 0;
-    for(int i = 0; i <w.ws_col; i++)
-        std::cout << "=";
-    std::cout << std::endl << "Project Pulasan" << std::endl << "Press CTRL-C to exit" << std::endl;
-    for(int i = 0; i <w.ws_col; i++)
-        std::cout << "=";
-    std::cout<< std::endl << std::endl << std::endl << std::endl;
+    unsigned int count = 0;
+    uint8_t outputs[16] = {0};
 
     try{
         while (true) {
+            uint16_t input = 0;
             int read_ret = modbus_read_registers(mb, MODBUS_READ_ADDRESS, 1, &input);
             if(read_ret == -1){
                 //Error status on read
@@ -70,6 +64,7 @@ int main(){
                 fprintf(stderr, "Read failed: %s\n", modbus_strerror(errno));
                 break;
             }
+
             int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
             if(write_ret == -1){
                 //Error status on write
@@ -139,4 +134,17 @@ int check_watchdog(modbus_t *mb){
     if(modbus_write_register(mb, 4385, 0xAFFE) == -1)
         return -1;
     return 0;
+}
+
+void print_intro(){
+    //Get the window size
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    for(int i = 0; i <w.ws_col; i++)
+        std::cout << "=";
+    std::cout << std::endl << "Project Pulasan" << std::endl << "Press CTRL-C to exit" << std::endl;
+    for(int i = 0; i <w.ws_col; i++)
+        std::cout << "=";
+    std::cout<< std::endl << std::endl << std::endl << std::endl;
 }

@@ -5,5 +5,6 @@
 
 void setup_interupt(void);
 int check_watchdog(modbus_t *mb);
+void print_intro();
 
 #endif /* PULASAN_H */
