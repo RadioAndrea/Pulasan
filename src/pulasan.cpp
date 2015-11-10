@@ -29,8 +29,6 @@ void sig_to_exception(int s)
 }
 
 int main(){
-
-
     modbus_t *mb;
 
     mb = modbus_new_tcp(IP_ADDR, 502);
@@ -55,25 +53,11 @@ int main(){
     try{
         while (true) {
             uint16_t input = 0;
-            int read_ret = modbus_read_registers(mb, MODBUS_READ_ADDRESS, 1, &input);
-            if(read_ret == -1){
-                //Error status on read
-                if(check_watchdog(mb) == 0){
-                    continue;
-                }
-                fprintf(stderr, "Read failed: %s\n", modbus_strerror(errno));
+            if(read_inputs(mb, &input) == -1)
                 break;
-            }
 
-            int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
-            if(write_ret == -1){
-                //Error status on write
-                if(check_watchdog(mb) == 0){
-                    continue;
-                }
-                fprintf(stderr, "Write failed: %s\n", modbus_strerror(errno));
+            if(write_outputs(mb, outputs) == -1)
                 break;
-            }
 
             print_io(input, outputs);
 
@@ -153,4 +137,28 @@ void print_io(uint16_t &input, uint8_t output[]){
         std::cout << (output[i]+0);
     }
     std::cout << std::endl << std::flush;
+}
+
+int read_inputs(modbus_t *mb, uint16_t *input){
+    int read_ret = modbus_read_registers(mb, MODBUS_READ_ADDRESS, 1, input);
+    if(read_ret == -1){
+        //Error status on read
+        if(check_watchdog(mb) == -1 ){
+            fprintf(stderr, "Read failed: %s\n", modbus_strerror(errno));
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int write_outputs(modbus_t *mb, uint8_t *outputs){
+    int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
+    if(write_ret == -1){
+        //Error status on write
+        if(check_watchdog(mb) == -1){
+            fprintf(stderr, "Write failed: %s\n", modbus_strerror(errno));
+            return -1;
+        }
+    }
+    return 0;
 }
