@@ -57,17 +57,19 @@ int main(){
     try{
         while (true) {
             int read_ret = modbus_read_input_bits(mb, MODBUS_READ_ADDRESS, 15, inputs);
-            /*if(read_ret == -1){
+            if(read_ret == -1){
                 //Error status on read
+                if(check_watchdog(mb) == 0){
+                    continue;
+                }
                 fprintf(stderr, "Read failed: %s\n", modbus_strerror(errno));
                 break;
-                }*/
-            int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
+                }
+            int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS-1, 16, outputs);
             if(write_ret == -1){
                 //Error status on write
-                if(errno == EMBXSFAIL){
-                    //Probably a watchdog timeout
-
+                if(check_watchdog(mb) == 0){
+                    continue;
                 }
                 fprintf(stderr, "Write failed: %s\n", modbus_strerror(errno));
                 break;
@@ -103,4 +105,24 @@ int main(){
         modbus_close(mb);
         modbus_free(mb);
     }
+}
+
+/* Checks if the error is a watchdog error
+   If the error is a watchdog timeout, resets it and returns 0
+   Otherwise return -1
+*/
+int check_watchdog(modbus_t *mb){
+    if(errno != EMBXSFAIL)
+        //Not a watchdog error
+        return -1;
+
+    uint16_t wd_status = 0;
+    int read_status = modbus_read_registers(mb, 4108, 1, &wd_status);
+    if (read_status == -1)
+        return -1;
+    if(modbus_write_register(mb, 4385, 0xBECF) == -1)
+        return -1;
+    if(modbus_write_register(mb, 4385, 0xAFFE) == -1)
+        return -1;
+    return 0;
 }
