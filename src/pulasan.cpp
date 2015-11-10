@@ -75,25 +75,11 @@ int main(){
                 break;
             }
 
-            // use \e[A to move up a line
-            std::cout << "\r\e[A\e[A\e[A"
-                      << "         0123456789012345" << std::endl;
-            std::cout << "inputs:  ";
-            std::bitset<16> inputs(input);
-            for(int i = 0; i < 16; i++){
-                std::cout << inputs[i];
-            }
-            std::cout << std::endl
-                      << "outputs: ";
-            for(int i = 0; i < 16; i++){
-                std::cout << (outputs[i]+0);//(outputs[i] == true) ? "1" : "0";
-            }
-            std::cout << std::endl << std::flush;
+            print_io(input, outputs);
 
             count++;
-            if(count==50){
+            if(count%50==0){
                 outputs[write_num] = write_bool;
-                count = 0;
                 write_num++;
             }
             if(write_num==16){
@@ -147,4 +133,24 @@ void print_intro(){
     for(int i = 0; i <w.ws_col; i++)
         std::cout << "=";
     std::cout<< std::endl << std::endl << std::endl << std::endl;
+}
+
+/* Prints IO data
+   output must be an array of length 16
+*/
+void print_io(uint16_t &input, uint8_t output[]){
+    // use \e[A to move up a line
+    std::cout << "\r\e[A\e[A\e[A"
+              << "         0123456789012345" << std::endl
+              << "inputs:  ";
+    std::bitset<16> inputs(input);
+    for(int i = 0; i < 16; i++){
+        std::cout << inputs[i];
+    }
+    std::cout << std::endl
+              << "outputs: ";
+    for(int i = 0; i < 16; i++){
+        std::cout << (output[i]+0);
+    }
+    std::cout << std::endl << std::flush;
 }
