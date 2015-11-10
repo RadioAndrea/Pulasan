@@ -55,7 +55,7 @@ int main(){
             write_bool = !write_bool;
             for(int i = MODBUS_WRITE_ADDRESS; i < MODBUS_WRITE_ADDRESS + 16; i++){
                 modbus_write_bit(mb, i, write_bool);
-                usleep(1*1000*1000);
+                usleep(500*1000);
             }
         }
     }catch(InterruptException& e){
