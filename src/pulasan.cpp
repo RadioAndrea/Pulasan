@@ -56,8 +56,22 @@ int main(){
 
     try{
         while (true) {
-            modbus_read_input_bits(mb, MODBUS_READ_ADDRESS-1, 16, inputs);
-            modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
+            int read_ret = modbus_read_input_bits(mb, MODBUS_READ_ADDRESS, 15, inputs);
+            /*if(read_ret == -1){
+                //Error status on read
+                fprintf(stderr, "Read failed: %s\n", modbus_strerror(errno));
+                break;
+                }*/
+            int write_ret = modbus_write_bits(mb, MODBUS_WRITE_ADDRESS, 16, outputs);
+            if(write_ret == -1){
+                //Error status on write
+                if(errno == EMBXSFAIL){
+                    //Probably a watchdog timeout
+
+                }
+                fprintf(stderr, "Write failed: %s\n", modbus_strerror(errno));
+                break;
+            }
 
             // use \e[A to move up a line
             std::cout << "\r\e[A\e[A\e[A"
