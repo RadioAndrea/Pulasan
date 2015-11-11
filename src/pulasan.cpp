@@ -9,8 +9,10 @@
 #include <unistd.h>
 #include <cerrno>
 #include <bitset>
+#include <getopt.h>
+#include <string>
 
-#define IP_ADDR "137.155.2.170"
+#define DEFAULT_IP_ADDR "137.155.2.170"
 
 const int MODBUS_READ_ADDRESS = 00000;
 const int MODBUS_WRITE_ADDRESS = 00000;
@@ -28,10 +30,21 @@ void sig_to_exception(int s)
   throw InterruptException(s);
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    std::string ip_address = "";
+    int parse_ret = parse_command_line_options(argc, argv, ip_address);
+    if(parse_ret != 1)
+        return parse_ret;
+
+    if(ip_address.empty()){
+        ip_address = DEFAULT_IP_ADDR;
+    }
+
+    print_intro();
+
     modbus_t *mb;
 
-    mb = modbus_new_tcp(IP_ADDR, 502);
+    mb = modbus_new_tcp(DEFAULT_IP_ADDR, 502);
     if (mb == NULL) {
         fprintf(stderr, "Unable to allocate libmodbus context\n");
         return -1;
@@ -43,7 +56,6 @@ int main(){
     }
 
     setup_interupt();
-    print_intro();
 
     bool write_bool = true;
     int  write_num  = 0;
@@ -85,6 +97,53 @@ void setup_interupt(void){
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
+}
+
+/* parses the command line options
+   returns 1 on success
+   ip_address must be allocated memory
+*/
+int parse_command_line_options(int argc, char *argv[], std::string ip_address){
+    const char * short_opt = "hi:";
+    struct option   long_opt[] ={
+        {"help",          no_argument,       NULL, 'h'},
+        {"ip",            required_argument, NULL, 'i'},
+        {NULL,            0,                 NULL, 0  }
+    };
+    int c;
+    while((c = getopt_long(argc, argv, short_opt, long_opt, NULL)) != -1){
+        switch(c){
+        case -1:       /* no more arguments */
+        case 0:        /* long options toggles */
+            break;
+
+        case 'i':
+            if(!ip_address.empty()){
+                std::cout << "You can only enter the IP Address once\n";
+                return -2;
+            }
+            ip_address = optarg;
+            break;
+
+        case 'h':
+            printf("Usage: %s [OPTIONS]\n", argv[0]);
+            printf("  -i, --ip ip_address   the IP for the IO module\n");
+            printf("  -h, --help            print this help and exit\n");
+            printf("\n");
+            return(0);
+
+        case ':':
+        case '?':
+            fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
+            return(-2);
+
+        default:
+            fprintf(stderr, "%s: invalid option -- %c\n", argv[0], c);
+            fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
+            return(-2);
+        }
+    }
+    return 1;
 }
 
 /* Checks if the error is a watchdog error

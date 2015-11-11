@@ -2,8 +2,11 @@
 #define PULASAN_H
 
 #include <modbus.h>
+#include <string>
+
 
 void setup_interupt(void);
+int parse_command_line_options(int argc, char *argv[], std::string ip_address);
 int check_watchdog(modbus_t *mb);
 void print_intro();
 void print_io(uint16_t &input, uint8_t output[]);
