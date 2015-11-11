@@ -103,7 +103,7 @@ void setup_interupt(void){
    returns 1 on success
    ip_address must be allocated memory
 */
-int parse_command_line_options(int argc, char *argv[], std::string ip_address){
+int parse_command_line_options(int argc, char *argv[], std::string &ip_address){
     const char * short_opt = "hi:";
     struct option   long_opt[] ={
         {"help",          no_argument,       NULL, 'h'},
