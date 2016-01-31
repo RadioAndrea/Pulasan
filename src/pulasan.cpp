@@ -11,8 +11,11 @@
 #include <bitset>
 #include <getopt.h>
 #include <string>
+#include <chrono>
 
 #define DEFAULT_IP_ADDR "137.155.2.170"
+
+#define AVERAGE_ALPHA 0.05 //Alpha to use when computing the rolling average
 
 const int MODBUS_READ_ADDRESS = 00000;
 const int MODBUS_WRITE_ADDRESS = 00000;
@@ -190,12 +193,29 @@ void print_io(uint16_t &input, uint8_t output[]){
     for(int i = 0; i < 16; i++){
         std::cout << inputs[i];
     }
+    static auto start_time = std::chrono::high_resolution_clock::now();
+    auto last_time = start_time;
+    start_time = std::chrono::high_resolution_clock::now();
+    int diff_us = std::chrono::duration_cast<std::chrono::microseconds>(start_time-last_time).count() ;
+    std::cout << "   Cycle time: "
+              << std::cout.width(5)
+              << diff_us
+              << " us";
+
     std::cout << std::endl
               << "outputs: ";
     for(int i = 0; i < 16; i++){
         std::cout << (output[i]+0);
     }
-    std::cout << std::endl << std::flush;
+
+    static float average_time = diff_us;
+    average_time = (AVERAGE_ALPHA * diff_us) + (1.0 - AVERAGE_ALPHA) * average_time;
+    std::cout << " Average time: "
+              << std::cout.width(6)
+              << average_time
+              << " us";
+
+    std::cout<< std::endl << std::flush;
 }
 
 int read_inputs(modbus_t *mb, uint16_t *input){

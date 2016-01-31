@@ -17,7 +17,7 @@ TARGET   = pulusan
 
 CC       = g++
 # compiling flags here
-CFLAGS   = -Wall -I.
+CFLAGS   = -Wall -I. -std=gnu++11
 
 # linking flags here
 LFLAGS   = -Wall -I. -lm -L /usr/local/lib -lmodbus
