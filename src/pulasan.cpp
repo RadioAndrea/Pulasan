@@ -65,17 +65,28 @@ int main(int argc, char *argv[]){
     unsigned int count = 0;
     uint8_t outputs[16] = {0};
 
+    //variables for calculations
+    bool button_pressed = false;
+
     try{
         while (true) {
             uint16_t input = 0;
             if(read_inputs(mb, &input) == -1)
                 break;
+            button_pressed = get_input_bit(input, 9);
+
+            //solenoid = button xor photoeyen
+            bool sol_out = button_pressed ^ get_input_bit(input, 2);
+
+            outputs[0] = sol_out;
 
             if(write_outputs(mb, outputs) == -1)
                 break;
 
+
             print_io(input, outputs);
 
+            /* code for incrmenting IO
             count++;
             if(count%50==0){
                 outputs[write_num] = write_bool;
@@ -84,8 +95,8 @@ int main(int argc, char *argv[]){
             if(write_num==16){
                 write_bool = !write_bool;
                 write_num = 0;
-            }
-            usleep(5*1000); //Sleep 5ms
+            }*/
+            usleep(1*1000); //Sleep 1ms
         }
     }catch(InterruptException& e){
         modbus_close(mb);
@@ -240,4 +251,8 @@ int write_outputs(modbus_t *mb, uint8_t *outputs){
         }
     }
     return 0;
+}
+
+bool get_input_bit(int input, int bit_num){
+  return input & (1 << (bit_num - 1));
 }
